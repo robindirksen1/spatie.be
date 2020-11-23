@@ -14,14 +14,6 @@ class GitHubSocialiteController
     {
         session()->reflash();
 
-        if (auth()->check()) {
-            /*
-             * If somebody is already logged in, the user wants to
-             * connect their GitHub profile. Remember who's logged in.
-             */
-            session()->put('auth-user-id', auth()->user()->id);
-        }
-
         return Socialite::driver('github')->redirect();
     }
 
@@ -63,12 +55,11 @@ class GitHubSocialiteController
 
     protected function retrieveUser($gitHubUser): User
     {
-        if (session('auth-user-id')) {
+        if (auth()->check()) {
             /*
-             * If there already was a local user created for the email used
-             * on GitHub, then let's use that local user
+             * If there already was a local user logged in, then let's use that local user.
              */
-            return User::find(session('auth-user-id'))->first();
+            return auth()->user();
         }
 
         if ($gitHubUser->email && $user = User::where('email', $gitHubUser->email)->first()) {
